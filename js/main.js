@@ -117,21 +117,69 @@
     requestAnimationFrame(step);
   })();
 
+  // ===== INTRO SPLASH =====
+  (function() {
+    var LAUNCH = new Date('2026-03-14T00:00:00+09:00');
+    var splash = document.getElementById('introSplash');
+    var cdEl = document.getElementById('countdown');
+
+    // Past launch date — remove both
+    if (Date.now() >= LAUNCH.getTime()) {
+      if (splash) splash.remove();
+      if (cdEl) cdEl.remove();
+      return;
+    }
+
+    document.getElementById('loader').style.display = 'none';
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+
+    // Intro stars
+    var introStars = document.getElementById('introStars');
+    for (var i = 0; i < 80; i++) {
+      var s = document.createElement('div');
+      s.className = 'lstar';
+      var sz = (Math.random() * 1.4 + 0.4).toFixed(1);
+      s.style.cssText =
+        'left:' + (Math.random()*100).toFixed(1) + '%;' +
+        'top:' + (Math.random()*100).toFixed(1) + '%;' +
+        'width:' + sz + 'px;height:' + sz + 'px;' +
+        '--dur:' + (Math.random()*3+2).toFixed(1) + 's;' +
+        '--delay:-' + (Math.random()*5).toFixed(1) + 's;';
+      introStars.appendChild(s);
+    }
+
+    // Animate text char by char per line
+    var textEl = document.getElementById('introText');
+    var lines = textEl.querySelectorAll('.intro-line');
+    var charDelay = 80;
+    var idx = 0;
+    lines.forEach(function(line) {
+      var str = line.textContent;
+      line.textContent = '';
+      for (var i = 0; i < str.length; i++) {
+        var span = document.createElement('span');
+        span.className = 'intro-char';
+        span.textContent = str[i];
+        span.style.animationDelay = (0.5 + idx * charDelay / 1000) + 's';
+        line.appendChild(span);
+        idx++;
+      }
+    });
+
+    // After text finishes, fade to countdown
+    var totalTime = 500 + idx * charDelay + 1500;
+    setTimeout(function() {
+      splash.classList.add('hidden');
+    }, totalTime);
+  })();
+
   // ===== COUNTDOWN =====
   (function() {
     var LAUNCH = new Date('2026-03-14T00:00:00+09:00');
     var cdEl = document.getElementById('countdown');
     if (!cdEl) return;
-
-    // Already past launch date
-    if (Date.now() >= LAUNCH.getTime()) {
-      cdEl.remove();
-      return;
-    }
-
-    // Hide main content behind countdown
-    document.getElementById('loader').style.display = 'none';
-    document.body.style.overflow = 'hidden';
+    if (Date.now() >= LAUNCH.getTime()) { cdEl.remove(); return; }
 
     // Scatter stars
     var bg = document.getElementById('countdownStars');
@@ -158,6 +206,7 @@
       if (diff <= 0) {
         cdEl.classList.add('hidden');
         document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
         document.getElementById('loader').style.display = '';
         return;
       }
